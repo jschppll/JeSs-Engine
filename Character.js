@@ -28,7 +28,7 @@ export default class Character extends Actor {
     super.draw();
   }
 
-  tickPhysics() {
-    super.tickPhysics();
+  tickPhysics(deltaTime) {
+    super.tickPhysics(deltaTime);
   }
 }

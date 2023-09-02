@@ -1,4 +1,4 @@
-import { normalizeVector, getCollisionRect } from "./Math.js";
+import { normalizeVector, getCollisionRect, vectorAdd } from "./Math.js";
 
 const profile_worldDynamic = {
   profile_worldDynamic: {
@@ -11,10 +11,10 @@ const profile_worldDynamic = {
 function isPointInsideActor(point, Actor) {
   const collisionBox = getCollisionRect(Actor, Actor.position);
 
-  const isPointRightOfLeftEdge = point.x > collisionBox.x1;
-  const isPointLeftOfRightEdge = point.x < collisionBox.x2;
-  const isPointBelowTopEdge = point.y > collisionBox.y1;
-  const isPointAboveBottomEdge = point.y < collisionBox.y2;
+  const isPointRightOfLeftEdge = point[0] > collisionBox.x1;
+  const isPointLeftOfRightEdge = point[0] < collisionBox.x2;
+  const isPointBelowTopEdge = point[1] > collisionBox.y1;
+  const isPointAboveBottomEdge = point[1] < collisionBox.y2;
 
   return (
     isPointRightOfLeftEdge &&
@@ -33,22 +33,18 @@ const ActorTraceByObjectType = (
   ignoredActors = [],
   objectTypes = []
 ) => {
-  let step = 1;
+  let step = 0.05;
   let hit = false;
   let hitActor = null;
 
   direction = normalizeVector(direction);
 
   while (!hit && step <= length) {
-    const traceVector = {
-      x: direction.x * step,
-      y: direction.y * step,
-    };
-
-    const traceLocation = {
-      x: location.x + traceVector.x,
-      y: location.y + traceVector.y,
-    };
+    const traceVector = [direction[0] * step, direction[1] * step];
+    const traceLocation = [
+      location[0] + traceVector[0],
+      location[1] + traceVector[1],
+    ];
 
     const actorBounds = getCollisionRect(Actor, traceLocation);
 
@@ -67,10 +63,10 @@ const ActorTraceByObjectType = (
       }
 
       const points = [
-        { x: actorBounds.x1, y: actorBounds.y1 },
-        { x: actorBounds.x1, y: actorBounds.y2 },
-        { x: actorBounds.x2, y: actorBounds.y1 },
-        { x: actorBounds.x2, y: actorBounds.y2 },
+        [actorBounds.x1, actorBounds.y1],
+        [actorBounds.x1, actorBounds.y2],
+        [actorBounds.x2, actorBounds.y1],
+        [actorBounds.x2, actorBounds.y2],
       ];
 
       for (let point of points) {
@@ -105,15 +101,8 @@ const LineTraceByObjectType = (
   direction = normalizeVector(direction);
 
   while (!hit && step <= length) {
-    const traceVector = {
-      x: direction.x * step,
-      y: direction.y * step,
-    };
-
-    const traceLocation = {
-      x: location.x + traceVector.x,
-      y: location.y + traceVector.y,
-    };
+    const traceVector = [direction[0] * step, direction[1] * step];
+    const traceLocation = vectorAdd(location, traceVector);
 
     world.physicsObjects.forEach((physicsObject) => {
       if (hit) {

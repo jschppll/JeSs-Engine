@@ -38,11 +38,16 @@
 
         playerController.possess(mainCharacter);
 
+        // Build the ground
+        const ground = new Platform(GameWorld, canvas);
+        ground.shape = 1;
+        ground.position = [0, canvas.height];
+        ground.width = canvas.width;
+        ground.height = 10;
+
         // Time to build our platforms
         const platform1 = new Platform(GameWorld, canvas);
-        platform1.shape = 1;
-        platform1.position.x = 300;
-        platform1.position.y = 250;
+        platform1.position = [300, 250];
         platform1.width = 25;
         platform1.height = 60;
         platform1.color = "red";

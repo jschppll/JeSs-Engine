@@ -1,14 +1,24 @@
 import GameObject from "./GameObject.js";
 import { makeSphere, makeRect } from "./spriteHelper.js";
+import {
+  vectorAdd,
+  vectorDivideFloat,
+  vectorMultiplyFloat,
+  getVectorLength,
+  normalizeVector,
+} from "./Math.js";
 import { ActorTraceByObjectType } from "./Physics.js";
+import WorldConfig from "./WorldConfig.js";
 
 export default class Actor extends GameObject {
   constructor(world, canvas) {
     super(world);
 
-    this.mass = 0;
-    this.velocity = 0;
-    this.force = 0;
+    this.mass = 2;
+    this.velocity = [0, 0];
+    this.force = [0, 0];
+
+    this.speed = 2;
 
     // default to circle
     this.shape = 0;
@@ -24,21 +34,10 @@ export default class Actor extends GameObject {
     this.requestMoveXValue = 0;
     this.requestMoveYValue = 0;
 
-    this.position = {
-      x: canvas.width / 2,
-      y: canvas.height - 30,
-    };
+    this.position = [canvas.width / 2, canvas.height - 30];
 
     world.registerObject(this, "render");
     world.registerObject(this, "physics");
-  }
-
-  addVelocity() {
-    this.velocity = inVelocity;
-  }
-
-  addForce() {
-    this.force = inForce;
   }
 
   requestMoveX(direction) {
@@ -55,26 +54,18 @@ export default class Actor extends GameObject {
     }
   }
 
-  translateX(direction) {
-    this.position.x += direction;
-  }
-
-  translateY(direction) {
-    this.position.y += direction;
-  }
-
   draw() {
     if (this.shape == 0) {
       makeSphere(this.ctx, {
-        x: this.position.x,
-        y: this.position.y,
+        x: this.position[0],
+        y: this.position[1],
         radius: this.radius,
         color: this.color,
       });
     } else if (this.shape == 1) {
       makeRect(this.ctx, {
-        x: this.position.x,
-        y: this.position.y,
+        x: this.position[0],
+        y: this.position[1],
         width: this.width,
         height: this.height,
         color: this.color,
@@ -82,34 +73,80 @@ export default class Actor extends GameObject {
     }
   }
 
-  tickRender() {
+  isGrounded() {
+    const hitResult = ActorTraceByObjectType(
+      this.world,
+      this,
+      this.position,
+      [0, 1],
+      1,
+      [this]
+    );
+
+    return hitResult.hit;
+  }
+
+  tickRender(deltaTime) {
     this.draw();
   }
 
-  tickPhysics() {
-    if (this.bHasRequestedMove) {
-      const direction = {
-        x: this.requestMoveXValue,
-        y: this.requestMoveYValue,
-      };
+  tickPhysics(deltaTime) {
+    const gravityVector = [0, WorldConfig.gravity];
 
+    if (this.bHasRequestedMove) {
+      // add movement force if requested
+      this.force = [
+        this.requestMoveXValue * this.speed,
+        this.requestMoveYValue * this.speed,
+      ];
+    }
+
+    if (!this.bHasRequestedMove && this.isGrounded()) {
+      return;
+    }
+
+    // apply gravity
+    this.force = vectorAdd(this.force, gravityVector);
+
+    // calculate final velocity
+    this.velocity = vectorMultiplyFloat(
+      vectorDivideFloat(this.force, this.mass),
+      deltaTime
+    );
+
+    let step = 0;
+    let length = 1;
+    let currentPos = this.position;
+    const direction = normalizeVector(this.velocity);
+    const bHit = false;
+
+    while (!bHit && step < getVectorLength(this.velocity)) {
       const hitResult = ActorTraceByObjectType(
         this.world,
         this,
-        this.position,
-        direction,
-        1,
+        currentPos,
+        this.velocity,
+        length,
         [this]
       );
 
-      if (!hitResult.hit) {
-        this.translateX(this.requestMoveXValue);
-        this.translateY(this.requestMoveYValue);
+      if (hitResult.hit) {
+        bHit == true;
+      } else {
+        currentPos = vectorAdd(
+          currentPos,
+          vectorMultiplyFloat(direction, length)
+        );
+
+        this.position = currentPos;
       }
 
-      this.requestMoveXValue = 0;
-      this.requestMoveYValue = 0;
-      this.bHasRequestedMove = false;
+      step += length;
     }
+
+    this.requestMoveXValue = 0;
+    this.requestMoveYValue = 0;
+    this.force = [0, 0];
+    this.bHasRequestedMove = false;
   }
 }

@@ -5,8 +5,6 @@ export default class World {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
 
-    this.tickRate = 10;
-
     this.inputObjects = [];
     this.renderObjects = [];
     this.physicsObjects = [];
@@ -43,24 +41,27 @@ export default class World {
   }
 
   beginTick() {
-    setInterval(() => this.worldTick(), this.tickInterval);
+    setInterval(
+      () => this.worldTick(WorldConfig.tickRate),
+      WorldConfig.tickRate
+    );
   }
 
-  worldTick() {
+  worldTick(deltaTime) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     this.inputObjects.forEach((inputObject) => {
-      inputObject.tickInput();
+      inputObject.tickInput(deltaTime);
     });
 
     this.physicsObjects.forEach((physicsObject) => {
       if (physicsObject.shouldTick) {
-        physicsObject.tickPhysics();
+        physicsObject.tickPhysics(deltaTime);
       }
     });
 
     this.renderObjects.forEach((gameObject) => {
-      gameObject.tickRender();
+      gameObject.tickRender(deltaTime);
     });
   }
 }

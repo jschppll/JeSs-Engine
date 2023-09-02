@@ -7,7 +7,7 @@ export default class GameObject {
     world.registerObject(this, "default");
   }
 
-  tick() {}
+  tick(deltaTime) {}
 
   beginPlay() {
     if (!this.hasBegunPlay) {

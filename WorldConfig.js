@@ -1,5 +1,6 @@
 export default {
-  gravity: -500,
+  gravity: 0.15,
   width: 500,
   height: 500,
+  tickRate: 10,
 };
