@@ -63,8 +63,4 @@ export default class World {
       gameObject.tickRender();
     });
   }
-
-  checkCollisionAtLocatoin(location, objectType) {
-    this.physicsObjects.forEach((physicsObject) => {});
-  }
 }
