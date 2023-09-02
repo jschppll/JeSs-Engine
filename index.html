@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      canvas {
+        background: #eee;
+        display: block;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="myCanvas" width="480" height="320"></canvas>
+
+    <script type="module">
+      import World from "./World.js";
+      import Character from "./Character.js";
+      import PlayerController from "./PlayerController.js";
+      import Platform from "./Platform.js";
+
+      const canvas = document.getElementById("myCanvas");
+      const ctx = canvas.getContext("2d");
+
+      let playerController;
+      let GameWorld;
+
+      function Setup() {
+        GameWorld = new World(canvas);
+
+        playerController = new PlayerController(GameWorld);
+        const mainCharacter = new Character(GameWorld, canvas);
+
+        playerController.possess(mainCharacter);
+
+        // Time to build our platforms
+        const platform1 = new Platform(GameWorld, canvas);
+        platform1.shape = 1;
+        platform1.position.x = 300;
+        platform1.position.y = 250;
+        platform1.width = 25;
+        platform1.height = 60;
+        platform1.color = "red";
+
+        GameWorld.beginPlay();
+      }
+
+      Setup();
+    </script>
+  </body>
+</html>
